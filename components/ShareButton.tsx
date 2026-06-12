@@ -2,9 +2,10 @@
 
 import { displayTitle, rankLabel } from "@/lib/title";
 
-// 「Xでシェア」ボタン（グッド/バッドの並びの右に置く）。押すとXの投稿画面が
-// 「〜〜ベスト7は…」＋ランキングURL＋#AIEN 入りで開く。
-// window.open はホーム画面アプリ等でブロックされるため通常のアンカーで開く（ロゴと同じ教訓）。
+// シェアボタン（グッド/バッドの並びの右に置く）。
+// ・スマホ等 navigator.share 対応環境：OSの共有メニュー（Xを選ぶと投稿画面にテキスト＋URL）。
+//   x.com への直接リンクはモバイルでアプリ引き渡しに失敗して元ページに弾かれることがあるため使わない。
+// ・PC等 非対応環境：アンカーのまま X の投稿画面を開く（window.open はPWAでブロックされるため不可）。
 const SITE = "https://aientame.com";
 
 export function ShareButton({
@@ -18,14 +19,20 @@ export function ShareButton({
 }) {
   const text = `${displayTitle(title)}${rankLabel(title, count)}は…`;
   const url = `${SITE}/movies/rankings/${slug}`;
-  const href = `https://x.com/intent/post?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=AIEN`;
+  const href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=AIEN`;
 
-  const track = () => {
+  const onClick = (e: React.MouseEvent) => {
     (window as { gtag?: (...args: unknown[]) => void }).gtag?.("event", "share", {
-      method: "x",
+      method: navigator.share ? "os_share" : "x_intent",
       content_type: "ranking",
       item_id: slug,
     });
+    if (navigator.share) {
+      e.preventDefault();
+      navigator.share({ text: `${text} #AIEN`, url }).catch(() => {
+        /* ユーザーのキャンセルは何もしない */
+      });
+    }
   };
 
   return (
@@ -33,7 +40,7 @@ export function ShareButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      onClick={track}
+      onClick={onClick}
       aria-label="Xでシェア"
       className="flex items-center gap-1 shrink-0 whitespace-nowrap rounded-full px-2.5 py-1.5 text-[12px] font-bold transition border bg-white/[0.06] border-white/10 text-white/65 hover:bg-white/10 active:scale-95"
     >
