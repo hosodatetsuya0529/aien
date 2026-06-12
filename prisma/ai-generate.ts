@@ -211,6 +211,8 @@ async function main() {
       } else if (!work.aiComment && w.comment) {
         await prisma.work.update({ where: { id: work.id }, data: { aiComment: w.comment.slice(0, 80) } });
       }
+      // 別題名が同一作品にマッチすることがある（ユニーク制約 rankingId+workId 違反になる）
+      if (picked.some((p) => p.workId === work.id)) continue;
       picked.push({ workId: work.id, comment: w.comment ?? "" });
     }
 
