@@ -18,7 +18,7 @@ export function ShareButton({
   title: string;
   count?: number;
 }) {
-  const text = `${displayTitle(title)}${rankLabel(title, count)}は…`;
+  const text = `「${displayTitle(title)}」${rankLabel(title, count)}は…`;
   const url = `${SITE}/movies/rankings/${slug}`;
   const href = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=AIEN`;
 
