@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { GoogleAnalytics } from "@next/third-parties/google";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +38,9 @@ export default function RootLayout({
         <footer className="mt-auto bg-neutral-950 py-5 px-5 text-center text-[11px] leading-relaxed text-neutral-500">
           This product uses the TMDB API but is not endorsed or certified by TMDB.
         </footer>
+        <GoogleAnalytics gaId="G-CV579EKP4S" />
+        {/* PWA復帰時に古いフィードを自動更新 */}
+        <AutoRefresh />
       </body>
     </html>
   );
