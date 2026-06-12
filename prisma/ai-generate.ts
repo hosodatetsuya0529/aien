@@ -230,7 +230,7 @@ async function main() {
       await prisma.workEntry.create({
         data: {
           rankingId: ranking.id, workId: p.workId, score: 100 - pos * 5,
-          blurb: p.comment.slice(0, 120), likes: Math.floor(Math.random() * 21),
+          blurb: p.comment.slice(0, 120), likes: Math.floor(Math.random() * 16), // 演出用ダミー0〜15。実際のいいねはAPIで上限なし加算
         },
       });
       pos++;
@@ -238,7 +238,7 @@ async function main() {
     const mins = ti * 7 + Math.floor(Math.random() * 5) + 1; // 直近に生成された風に
     await prisma.workRanking.update({
       where: { id: ranking.id },
-      data: { createdAt: new Date(Date.now() - mins * 60000), good: Math.floor(Math.random() * 21), bad: Math.floor(Math.random() * 9) },
+      data: { createdAt: new Date(Date.now() - mins * 60000), good: Math.floor(Math.random() * 16), bad: Math.floor(Math.random() * 16) }, // 演出用ダミー0〜15。実際の投票はAPIで上限なし加算
     });
     made++;
     console.log(`  ✓ ${theme.title}（${picked.length}作品）`);
