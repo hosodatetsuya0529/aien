@@ -3,27 +3,33 @@
 import { useEffect } from "react";
 
 // PWA（ホーム画面アプリ）はアイコンから開いても前回の画面をそのまま復元するため、
-// フィードが古いまま表示され続ける。前面に復帰した時に一定時間経っていたら
-// 再読み込みして、常に新しいランキングに出会えるようにする。
-const STALE_MS = 5 * 60 * 1000;
+// フィードが古いまま表示され続ける。「バックグラウンドにいた時間」が一定を超えて
+// 前面に戻ってきたら再読み込みして、開き直すたび新しいランキングに出会えるようにする。
+const STALE_MS = 60 * 1000;
 
 export function AutoRefresh() {
   useEffect(() => {
-    let loadedAt = Date.now();
-    const refreshIfStale = () => {
-      if (document.visibilityState !== "visible") return;
-      if (Date.now() - loadedAt < STALE_MS) return;
-      loadedAt = Date.now();
-      window.location.reload();
+    const loadedAt = Date.now();
+    let hiddenAt: number | null = null;
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        hiddenAt = Date.now();
+        return;
+      }
+      if (hiddenAt !== null && Date.now() - hiddenAt >= STALE_MS) {
+        window.location.reload();
+        return;
+      }
+      hiddenAt = null;
     };
-    // bfcache（戻る/進むキャッシュ）から復元された時も同じ判定を通す
+    // bfcache（戻る/進むキャッシュ）から復元された時は読み込み時刻を基準に判定
     const onPageShow = (e: PageTransitionEvent) => {
-      if (e.persisted) refreshIfStale();
+      if (e.persisted && Date.now() - loadedAt >= STALE_MS) window.location.reload();
     };
-    document.addEventListener("visibilitychange", refreshIfStale);
+    document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pageshow", onPageShow);
     return () => {
-      document.removeEventListener("visibilitychange", refreshIfStale);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pageshow", onPageShow);
     };
   }, []);
