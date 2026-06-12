@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { RankingRow, type FeedEntry } from "./RankingRow";
 import { RankingVote } from "./RankingVote";
+import { ShareButton } from "./ShareButton";
 import { RankingCount } from "./RankingCount";
 import { moodColor } from "@/lib/mood";
 import { displayTitle, rankLabel } from "@/lib/title";
@@ -54,8 +55,11 @@ export function RankingSection({
       </div>
 
       <div className="flex items-center gap-2.5 mb-3">
-        <span className="text-[11px] text-white/40 shrink-0">このランキング、どう？</span>
+        <span className="text-[11px] text-white/40 min-w-0 truncate">このランキング、どう？</span>
         <RankingVote slug={slug} initialGood={good} initialBad={bad} />
+        <span className="ml-auto shrink-0" data-swipenav>
+          <ShareButton slug={slug} title={title} count={count} />
+        </span>
       </div>
 
       <ol className="space-y-3">
