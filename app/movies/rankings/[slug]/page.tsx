@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { ShareButton } from "@/components/ShareButton";
 import { getWorkRanking } from "@/lib/queries";
 import { RankingRow } from "@/components/RankingRow";
 import { RankingVote } from "@/components/RankingVote";
@@ -16,6 +18,21 @@ function ago(d: Date): string {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}時間前`;
   return `${Math.floor(h / 24)}日前`;
+}
+
+// シェアされた時のOGカード用メタデータ（画像は opengraph-image.tsx が自動生成）
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const r = await getWorkRanking(slug);
+  if (!r) return {};
+  const name = `${displayTitle(r.title)}${rankLabel(r.title, r.count)}`;
+  const description = "AIが自動生成したエンタメランキング。いま配信で観られる作品だけ。";
+  return {
+    title: `${name} | AIEN`,
+    description,
+    openGraph: { title: name, description, type: "article" },
+    twitter: { card: "summary_large_image", title: name, description },
+  };
 }
 
 export default async function WorkRankingPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -51,6 +68,9 @@ export default async function WorkRankingPage({ params }: { params: Promise<{ sl
           <div className="flex items-center gap-2.5 mt-3">
             <span className="text-[11px] text-white/40 shrink-0">このランキング、どう？</span>
             <RankingVote slug={r.slug} initialGood={r.good} initialBad={r.bad} />
+            <span className="ml-auto">
+              <ShareButton slug={r.slug} title={r.title} count={r.count} />
+            </span>
           </div>
         </header>
 

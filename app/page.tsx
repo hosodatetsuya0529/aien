@@ -32,6 +32,9 @@ export default async function Home() {
           {feed.map((r) => (
             <section
               key={r.slug}
+              data-slug={r.slug}
+              data-title={r.title}
+              data-count={r.count}
               className="h-[100dvh] snap-start snap-always flex flex-col items-center justify-center px-5 py-4"
             >
               <RankingSection slug={r.slug} title={r.title} count={r.count} agoText={ago(r.createdAt)} good={r.good} bad={r.bad} entries={r.entries} total={total} />

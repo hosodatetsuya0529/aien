@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { ShareButton } from "./ShareButton";
 
 // スワイプ操作＋ヒント。
 // ・マウス：ドラッグで中身が追従 → 離すとヌルッと次/前へ（TikTok風）
@@ -145,6 +146,7 @@ export function SwipeNav() {
             <span className="text-[11px] [writing-mode:vertical-rl] tracking-[0.25em]">スワイプで次へ</span>
             <span className="text-2xl leading-none mt-2 animate-bounce">﹀</span>
           </button>
+          <ShareButton />
         </div>
       </div>
     </div>

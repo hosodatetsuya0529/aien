@@ -15,6 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://aientame.com"),
   title: "AIEN — AIが自動生成するエンタメ動画ランキング",
   description:
     "AIが自動生成するエンタメ動画ランキング。映画・ドラマ・アニメをテーマ別に、いま配信で観られる作品をスワイプで楽しめる。",
