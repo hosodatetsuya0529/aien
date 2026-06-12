@@ -48,3 +48,6 @@ next-env.d.ts
 
 # AI生成の月次コスト記録（予算ガード用）
 /prisma/.gen-usage.json
+
+# Claude Code local settings (may contain tokens in permission entries)
+.claude/settings.local.json
