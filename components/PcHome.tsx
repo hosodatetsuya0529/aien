@@ -16,7 +16,7 @@ type PcRanking = {
   count: number;
   good: number;
   bad: number;
-  createdAt: string | Date;
+  agoText: string; // 相対時刻はサーバーで文字列化して受け取る（ハイドレーションずれ防止）
   entries: FeedEntry[];
 };
 
@@ -24,15 +24,6 @@ const PAGE = 10; // 「もっと見る」で10件ずつ追加
 
 // 人気No.チップの色：1位から 赤・橙・黄・緑・青・藍・紫 でループ
 const RAINBOW = ["#ff4d4d", "#ff9a3c", "#ffd83c", "#3dd65f", "#3b8cff", "#5b5bf0", "#b15cff"];
-
-function ago(d: Date): string {
-  const m = Math.floor((Date.now() - d.getTime()) / 60000);
-  if (m < 1) return "たった今";
-  if (m < 60) return `${m}分前`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}時間前`;
-  return `${Math.floor(h / 24)}日前`;
-}
 
 // ランキング1本（人気No.N＋テーマ＋作品7枚をコンテナ幅いっぱいに均等配置）
 function Block({ r, idx }: { r: PcRanking; idx: number }) {
@@ -52,7 +43,8 @@ function Block({ r, idx }: { r: PcRanking; idx: number }) {
           <span className="ml-1.5" style={{ color: accent }}>{rankLabel(r.title, r.count)}</span>
         </h2>
         <span className="text-[12px] text-white/40 shrink-0">
-          AIが<span className="text-emerald-400/80">{ago(new Date(r.createdAt))}</span>に生成
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 align-middle mr-1.5 animate-pulse" />
+          AIが<span className="text-emerald-400/80">{r.agoText}</span>に生成
         </span>
       </div>
 
