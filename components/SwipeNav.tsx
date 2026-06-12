@@ -69,7 +69,9 @@ export function SwipeNav() {
     // ドラッグ＝スワイプ（マウス／タッチ両対応のページャー）
     let dragging = false, startY = 0, startScroll = 0, moved = 0, startT = 0, startIdx = 0;
     const onDown = (e: PointerEvent) => {
-      if ((e.target as HTMLElement).closest("[data-swipenav]")) return;
+      // ボタン類（data-swipenav）はスワイプ対象外。前回スワイプの moved が残っていると
+      // 直後のタップが誤クリック扱いで握り潰されるため、ここで必ずリセットする。
+      if ((e.target as HTMLElement).closest("[data-swipenav]")) { moved = 0; return; }
       cancelAnimationFrame(rafRef.current);
       dragging = true; startY = e.clientY; startScroll = c.scrollTop; moved = 0; startT = performance.now();
       startIdx = currentIndex(c, sectionTops(c)); // スワイプ開始時のランキングを基準にする
@@ -98,7 +100,12 @@ export function SwipeNav() {
       animateTo(tops[t]); // 離したらヌルッと着地（必ず1つ）
     };
     const onClick = (e: MouseEvent) => {
-      if (moved > 10) { e.preventDefault(); e.stopPropagation(); moved = 0; }
+      // スワイプ末尾の誤クリックだけ止める。ボタン類（data-swipenav）への意図的なタップは通す。
+      if (moved > 10 && !(e.target as HTMLElement).closest("[data-swipenav]")) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      moved = 0;
     };
     // 写真・テキストのネイティブdrag（画像が持ち上がる挙動）を止める＝スワイプを邪魔させない
     const onDragStart = (e: DragEvent) => e.preventDefault();
