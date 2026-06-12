@@ -1,36 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# カブみんな — みんなの株価予想と口コミサイト（MVP）
 
-## Getting Started
+「この先、上がる？下がる？」をワンタップで投票し、みんなの空気感（センチメント）と口コミを可視化するサイトです。日本株・米国株の両対応。
 
-First, run the development server:
+## 技術構成
+
+- **Next.js 16（App Router）** — SEO に強く、そのまま公開まで持っていける
+- **Prisma 6 + SQLite** — 投票・口コミが実際に保存される（外部DB登録不要。後で PostgreSQL へ移行可）
+- **Tailwind CSS 4** — UI
+
+## セットアップ
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npx prisma migrate dev   # DB作成（初回のみ）
+npm run db:seed          # サンプル銘柄を投入
+npm run dev              # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 主な機能（実装済み）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- 銘柄一覧（日本株 / 米国株タブ）＋ 各銘柄のセンチメントバー
+- 銘柄詳細：上がる / 下がる の投票、リアルタイム集計
+- 口コミ投稿（ニックネーム・スタンス・本文）＋ いいね
+- 無記名でも投票可（端末ごとの匿名キーで「1銘柄1日1票」を制御）
+- 投資助言に当たらないよう免責表記
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ディレクトリ
 
-## Learn More
+```
+app/
+  page.tsx                     一覧ページ
+  stocks/[ticker]/page.tsx     銘柄詳細ページ
+  api/stocks/[ticker]/vote     投票API
+  api/stocks/[ticker]/comment  口コミAPI
+  api/comments/[id]/like       いいねAPI
+components/                    UI部品（投票ボタン・センチメントバー・口コミ）
+lib/                           Prismaクライアント・集計クエリ・端末キー
+prisma/                        スキーマ・シード
+```
 
-To learn more about Next.js, take a look at the following resources:
+## 次にやると良いこと（ロードマップ）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **株価データの自動取得** — 日本株は J-Quants API、米国株は yfinance 等。バッチで毎日更新（現状はサンプル値）。
+2. **「予想の答え合わせ」** — 投票時の株価を記録し、1週間後の実際の値と比較。的中率ランキング＝最大の差別化ポイント。
+3. **ユーザーアカウント** — 任意ログインで的中率・投稿履歴を蓄積（匿名キーから移行）。
+4. **荒らし対策の強化** — レート制限、通報、NGワード。
+5. **収益化** — 証券口座アフィリエイト、広告、プレミアム（過去データ閲覧）。
+6. **本番DB / デプロイ** — SQLite → PostgreSQL（Supabase等）、Vercel へデプロイ。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 注意
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 本サイトはユーザー投票の集計・情報提供を目的としたもので、個別銘柄の投資助言ではありません。
+- このフォルダは OneDrive 同期下にあります。`node_modules` と `prisma/*.db` は `.gitignore` 済みですが、同期が重い場合は OneDrive 側でこのフォルダを同期除外に設定するのを推奨します。

@@ -1,0 +1,117 @@
+// タレント・カタログ自動生成エンジンのデータモデル
+// docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL") // 通常接続（Neonのpooled。Vercel/サーバーレス用）
+  directUrl = env("DIRECT_URL")   // マイグレーション用の直結（Neonのdirect）
+}
+
+// タレント（名鑑の土台。実運用では Wikidata/TMDB 等から構築する想定）
+model Talent {
+  id         String   @id @default(cuid())
+  name       String
+  kana       String?
+  agency     String? // 所属事務所
+  profile    String? // 一言プロフィール
+  photoUrl   String? // 公式プロフィール写真（MVPではダミー、UI側でイニシャル表示）
+  popularity Float    @default(50) // AI/データ由来の話題度スコア(0-100)
+  tags       String   @default("") // カンマ区切り（例: 女優,演技派,映画,清潔感）
+  createdAt  DateTime @default(now())
+
+  entries RankingEntry[]
+}
+
+// ランキング（テーマ。AIが自動生成する1カタログ）
+model Ranking {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  methodNote  String   @default("AIと読者の「いいね」をもとに自動生成・編集部調整")
+  status      String   @default("published") // published | pool（新着プール）
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  entries RankingEntry[]
+}
+
+// ランキング内の1人ぶん（タレント×テーマ）
+model RankingEntry {
+  id        String @id @default(cuid())
+  rankingId String
+  talentId  String
+  score     Float  @default(50) // AIの基礎スコア
+  blurb     String @default("") // AI生成のほめ文
+  likes     Int    @default(0) // 表示順は score + 重み×likes で決まる
+
+  ranking  Ranking @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  talent   Talent  @relation(fields: [talentId], references: [id], onDelete: Cascade)
+  likeRows Like[]
+
+  @@unique([rankingId, talentId])
+  @@index([rankingId])
+  @@index([talentId])
+}
+
+// いいねの重複防止（端末ごと匿名キー）
+model Like {
+  id        String   @id @default(cuid())
+  entryId   String
+  voterKey  String
+  createdAt DateTime @default(now())
+
+  entry RankingEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+
+  @@unique([entryId, voterKey])
+  @@index([entryId])
+}
+
+// ── 作品（映画・ドラマ）版 ─────────────────────────────
+model Work {
+  id         String   @id @default(cuid())
+  title      String
+  year       Int?
+  kind       String   @default("movie") // movie | drama
+  posterUrl  String? // TMDBのポスター（キー投入で埋まる）
+  cast       String? // 主演俳優（TMDBの出演者。キー投入で埋まる）
+  providers  String? // 配信サービス（カンマ区切り。TMDB watch/providers=JustWatch由来、JP）
+  overview   String? // 作品紹介文（公式/TMDBあらすじ。現状はWikipedia要約）
+  aiComment  String? // どみるAIの感想（一言。将来Claude生成、現状は手動投入）
+  popularity Float    @default(50)
+  createdAt  DateTime @default(now())
+
+  entries WorkEntry[]
+}
+
+model WorkRanking {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  title       String
+  description String?
+  status      String   @default("published")
+  good        Int      @default(0) // ランキングへの「グッド」票
+  bad         Int      @default(0) // ランキングへの「バッド」票
+  createdAt   DateTime @default(now())
+
+  entries WorkEntry[]
+}
+
+model WorkEntry {
+  id        String @id @default(cuid())
+  rankingId String
+  workId    String
+  score     Float  @default(50)
+  blurb     String @default("")
+  likes     Int    @default(0)
+
+  ranking WorkRanking @relation(fields: [rankingId], references: [id], onDelete: Cascade)
+  work    Work        @relation(fields: [workId], references: [id], onDelete: Cascade)
+
+  @@unique([rankingId, workId])
+  @@index([rankingId])
+}

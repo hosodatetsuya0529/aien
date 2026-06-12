@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
+
+# local sqlite db
+/prisma/*.db
+/prisma/*.db-journal
+
+# AI生成の月次コスト記録（予算ガード用）
+/prisma/.gen-usage.json
